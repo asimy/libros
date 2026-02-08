@@ -10,8 +10,10 @@ struct LibraryView: View {
 
     @State private var searchText = ""
     @State private var showingAddBook = false
+    @State private var showingFilterSheet = false
     @State private var viewMode: ViewMode = .list
     @State private var sortOrder: SortOrder = .title
+    @State private var filter = LibraryFilter()
 
     enum ViewMode: String, CaseIterable {
         case list = "List"
@@ -42,17 +44,20 @@ struct LibraryView: View {
     }
 
     private var filteredBooks: [Book] {
-        if searchText.isEmpty {
-            return sortedBooks
+        var results = sortedBooks
+
+        if !searchText.isEmpty {
+            let lowercasedSearch = searchText.lowercased()
+            results = results.filter { book in
+                book.searchableText.lowercased().contains(lowercasedSearch)
+            }
         }
 
-        let lowercasedSearch = searchText.lowercased()
-        return sortedBooks.filter { book in
-            book.title.lowercased().contains(lowercasedSearch) ||
-            book.authorNames.lowercased().contains(lowercasedSearch) ||
-            book.isbn13?.contains(searchText) == true ||
-            book.isbn10?.contains(searchText) == true
+        if filter.isActive {
+            results = results.filter { filter.matches($0) }
         }
+
+        return results
     }
 
     private var sortedBooks: [Book] {
@@ -101,15 +106,26 @@ struct LibraryView: View {
                 }
 
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showingAddBook = true
-                    } label: {
-                        Image(systemName: "plus")
+                    HStack(spacing: 12) {
+                        Button {
+                            showingFilterSheet = true
+                        } label: {
+                            Image(systemName: filter.isActive ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
+                        }
+
+                        Button {
+                            showingAddBook = true
+                        } label: {
+                            Image(systemName: "plus")
+                        }
                     }
                 }
             }
             .sheet(isPresented: $showingAddBook) {
                 AddBookView()
+            }
+            .sheet(isPresented: $showingFilterSheet) {
+                LibraryFilterView(filter: $filter)
             }
         }
     }
