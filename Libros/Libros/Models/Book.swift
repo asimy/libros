@@ -202,8 +202,45 @@ final class Book {
             components.append(isbn13)
         }
 
+        if let publisher = publisher {
+            components.append(publisher)
+        }
+
+        if let synopsis = synopsis {
+            components.append(synopsis)
+        }
+
+        components.append(contentsOf: genres.map(\.name))
+        components.append(contentsOf: tags.map(\.name))
+
+        if let notes = notes {
+            components.append(notes)
+        }
+
         searchableText = components.joined(separator: " ")
         dateModified = Date()
+    }
+
+    /// Formatted text for sharing
+    var shareText: String {
+        var lines: [String] = []
+        lines.append(fullTitle)
+        lines.append("by \(authorNames)")
+
+        if let seriesInfo = seriesInfo {
+            lines.append("Series: \(seriesInfo)")
+        }
+
+        if let rating = rating {
+            let stars = String(repeating: "\u{2B50}", count: rating)
+            lines.append("Rating: \(stars)")
+        }
+
+        if let isbn = primaryISBN {
+            lines.append("ISBN: \(isbn)")
+        }
+
+        return lines.joined(separator: "\n")
     }
 
     /// Sets the rating, clamping to valid range

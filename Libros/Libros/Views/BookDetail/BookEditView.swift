@@ -7,6 +7,10 @@ struct BookEditView: View {
     @Environment(\.dismiss) private var dismiss
 
     @Query(sort: \Author.sortName) private var existingAuthors: [Author]
+    @Query(sort: \Genre.name) private var existingGenres: [Genre]
+    @Query(sort: \Tag.name) private var existingTags: [Tag]
+    @Query(sort: \Series.name) private var existingSeries: [Series]
+    @Query(sort: \Location.name) private var existingLocations: [Location]
 
     let book: Book?
     var initialISBN: String? = nil
@@ -28,6 +32,13 @@ struct BookEditView: View {
     @State private var readStatus: ReadStatus = .unread
     @State private var rating: Int?
     @State private var coverURL: URL?
+
+    // MARK: - Relationship State
+
+    @State private var selectedGenreIDs: Set<UUID> = []
+    @State private var selectedTagIDs: Set<UUID> = []
+    @State private var selectedSeriesID: UUID?
+    @State private var seriesOrderText: String = ""
 
     // MARK: - Lookup State
 
@@ -70,6 +81,15 @@ struct BookEditView: View {
             // Authors Section
             authorsSection
 
+            // Genres Section
+            genresSection
+
+            // Tags Section
+            tagsSection
+
+            // Series Section
+            seriesSection
+
             // Publication Section
             publicationSection
 
@@ -81,6 +101,9 @@ struct BookEditView: View {
 
             // Notes Section
             notesSection
+
+            // Copies Section
+            copiesSection
         }
         .scrollContentBackground(.visible)
         .scrollDismissesKeyboard(.interactively)
@@ -238,8 +261,120 @@ struct BookEditView: View {
 
     private var notesSection: some View {
         Section("Notes") {
-            TextEditor(text: $notes)
-                .frame(minHeight: 80)
+            MarkdownNotesView(text: $notes)
+        }
+    }
+
+    private var genresSection: some View {
+        Section("Genres") {
+            if !selectedGenreIDs.isEmpty {
+                FlowLayout(spacing: 8) {
+                    ForEach(existingGenres.filter { selectedGenreIDs.contains($0.id) }) { genre in
+                        HStack(spacing: 4) {
+                            Text(genre.name)
+                            Button {
+                                selectedGenreIDs.remove(genre.id)
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.caption2)
+                            }
+                        }
+                        .font(.caption)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.blue.opacity(0.1))
+                        .foregroundStyle(.blue)
+                        .clipShape(Capsule())
+                    }
+                }
+            }
+
+            NavigationLink {
+                GenrePickerView(selectedGenreIDs: $selectedGenreIDs)
+            } label: {
+                Label("Select Genres", systemImage: "tag")
+            }
+        }
+    }
+
+    private var tagsSection: some View {
+        Section("Tags") {
+            if !selectedTagIDs.isEmpty {
+                FlowLayout(spacing: 8) {
+                    ForEach(existingTags.filter { selectedTagIDs.contains($0.id) }) { tag in
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(tag.colorHex.map { Color(hex: $0) } ?? .secondary)
+                                .frame(width: 8, height: 8)
+                            Text(tag.name)
+                            Button {
+                                selectedTagIDs.remove(tag.id)
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.caption2)
+                            }
+                        }
+                        .font(.caption)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.green.opacity(0.1))
+                        .foregroundStyle(.green)
+                        .clipShape(Capsule())
+                    }
+                }
+            }
+
+            NavigationLink {
+                TagPickerView(selectedTagIDs: $selectedTagIDs)
+            } label: {
+                Label("Select Tags", systemImage: "number")
+            }
+        }
+    }
+
+    private var seriesSection: some View {
+        Section("Series") {
+            Picker("Series", selection: $selectedSeriesID) {
+                Text("None").tag(nil as UUID?)
+                ForEach(existingSeries) { series in
+                    Text(series.name).tag(series.id as UUID?)
+                }
+            }
+
+            if selectedSeriesID != nil {
+                TextField("Order in Series (e.g., 1)", text: $seriesOrderText)
+                    .keyboardType(.numberPad)
+            }
+        }
+    }
+
+    private var copiesSection: some View {
+        Section("My Copies") {
+            if let book = book {
+                ForEach(book.copies) { copy in
+                    BookCopyEditView(copy: copy)
+                }
+                .onDelete { offsets in
+                    for index in offsets {
+                        let copy = book.copies[index]
+                        modelContext.delete(copy)
+                    }
+                }
+            }
+
+            Button {
+                addCopy()
+            } label: {
+                Label("Add Copy", systemImage: "plus.circle")
+            }
+        }
+    }
+
+    private func addCopy() {
+        let copy = BookCopy(format: .paperback)
+        modelContext.insert(copy)
+        if let book = book {
+            copy.book = book
         }
     }
 
@@ -261,6 +396,12 @@ struct BookEditView: View {
             readStatus = book.readStatus
             rating = book.rating
             coverURL = book.coverURL
+
+            // Relationships
+            selectedGenreIDs = Set(book.genres.map(\.id))
+            selectedTagIDs = Set(book.tags.map(\.id))
+            selectedSeriesID = book.series?.id
+            seriesOrderText = book.seriesOrder.map { String($0) } ?? ""
         } else if let initialISBN, !initialISBN.isEmpty {
             isbn13 = initialISBN
             lookupISBN()
@@ -303,6 +444,21 @@ struct BookEditView: View {
         // Handle authors
         updateAuthors(for: targetBook)
 
+        // Handle genres
+        targetBook.genres = existingGenres.filter { selectedGenreIDs.contains($0.id) }
+
+        // Handle tags
+        targetBook.tags = existingTags.filter { selectedTagIDs.contains($0.id) }
+
+        // Handle series
+        if let seriesID = selectedSeriesID {
+            targetBook.series = existingSeries.first { $0.id == seriesID }
+            targetBook.seriesOrder = Int(seriesOrderText)
+        } else {
+            targetBook.series = nil
+            targetBook.seriesOrder = nil
+        }
+
         targetBook.updateSearchableText()
 
         dismiss()
@@ -342,6 +498,11 @@ struct BookEditView: View {
 
     private func lookupISBN() {
         guard !isbn13.isEmpty else { return }
+
+        if !NetworkMonitor.shared.isConnected {
+            lookupError = "You're offline. ISBN lookup requires an internet connection."
+            return
+        }
 
         isLookingUp = true
         lookupError = nil
