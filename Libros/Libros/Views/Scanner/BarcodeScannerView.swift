@@ -379,6 +379,13 @@ struct BarcodeScannerView: View {
 
         // Pause scanning
         isSessionRunning = false
+
+        // Queue for later if offline
+        if !NetworkMonitor.shared.isConnected {
+            queueOfflineLookup(isbn13)
+            return
+        }
+
         scanState = .processing(isbn: isbn13)
 
         // Look up the book
@@ -392,11 +399,36 @@ struct BarcodeScannerView: View {
                 scanState = .notFound(isbn: isbn13)
                 showResultSheet = true
             } catch {
+                // If we lost connectivity during the request, queue the lookup
+                if !NetworkMonitor.shared.isConnected {
+                    queueOfflineLookup(isbn13)
+                    return
+                }
                 scanState = .error(error.localizedDescription)
                 // Auto-reset after a delay
                 try? await Task.sleep(for: .seconds(2))
                 resetToScanning()
             }
+        }
+    }
+
+    private func queueOfflineLookup(_ isbn13: String) {
+        // Check for duplicate pending lookup
+        let pending = LookupStatus.pending
+        let descriptor = FetchDescriptor<PendingLookup>(
+            predicate: #Predicate<PendingLookup> { $0.isbn == isbn13 && $0.status == pending }
+        )
+        let alreadyQueued = (try? modelContext.fetchCount(descriptor)) ?? 0 > 0
+
+        if !alreadyQueued {
+            let lookup = PendingLookup(isbn: isbn13)
+            modelContext.insert(lookup)
+        }
+
+        scanState = .error("Offline — ISBN queued for lookup")
+        Task {
+            try? await Task.sleep(for: .seconds(2))
+            resetToScanning()
         }
     }
 
