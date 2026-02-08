@@ -5,6 +5,13 @@ import SwiftData
 struct AddBookView: View {
     @Environment(\.dismiss) private var dismiss
 
+    @Query(sort: \PendingLookup.dateQueued)
+    private var allLookups: [PendingLookup]
+
+    private var pendingLookups: [PendingLookup] {
+        allLookups.filter { $0.status != .completed }
+    }
+
     /// When false, used as tab root; when true, used as sheet with Cancel button
     var isSheet: Bool = true
 
@@ -15,11 +22,33 @@ struct AddBookView: View {
         case guidedOCR
         case quickPhoto
         case manualEntry
+        case pendingLookups
     }
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
             List {
+                if !pendingLookups.isEmpty {
+                    Section("Offline Queue") {
+                        NavigationLink(value: Destination.pendingLookups) {
+                            Label {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Pending Lookups")
+                                        .font(.headline)
+                                    Text("\(pendingLookups.count) ISBN(s) queued")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            } icon: {
+                                Image(systemName: "clock.badge.questionmark")
+                                    .font(.title2)
+                                    .foregroundStyle(.orange)
+                                    .frame(width: 32)
+                            }
+                        }
+                    }
+                }
+
                 NavigationLink(value: Destination.isbnLookup) {
                     Label {
                         VStack(alignment: .leading, spacing: 2) {
@@ -113,6 +142,8 @@ struct AddBookView: View {
                     QuickPhotoView(onComplete: { dismiss() })
                 case .manualEntry:
                     BookEditView(book: nil, isEmbedded: true)
+                case .pendingLookups:
+                    PendingLookupsView()
                 }
             }
         }
