@@ -1,6 +1,6 @@
 # Libros
 
-A personal book library management app for iOS, iPadOS, macOS, watchOS, and Linux.
+A personal book library management app for tracking physical books in a home library or personal collection. The current target is iOS; multi-platform expansion is planned.
 
 ## Features
 
@@ -24,37 +24,18 @@ A personal book library management app for iOS, iPadOS, macOS, watchOS, and Linu
 
 ### Creating the Xcode Project
 
-1. Open Xcode and create a new project:
-   - Select **Multiplatform > App**
-   - Product Name: `Libros`
-   - Organization Identifier: Your identifier (e.g., `com.yourname`)
-   - Interface: **SwiftUI**
-   - Storage: **SwiftData**
-
-2. Delete the generated `ContentView.swift` and `LibrosApp.swift` files
-
-3. Copy the contents of `LibrosApp/` into your Xcode project:
-   - Drag the `Models`, `Services`, `Views`, and `Utilities` folders into Xcode
-   - Copy `LibrosApp.swift` and `Views/ContentView.swift` to replace the defaults
-
-4. Configure CloudKit:
-   - Select your project in the navigator
-   - Go to **Signing & Capabilities**
-   - Click **+ Capability** and add **iCloud**
-   - Check **CloudKit**
-   - Create a new CloudKit container or select an existing one
-
-5. Configure camera permissions:
-   - Open `Info.plist`
-   - Add `NSCameraUsageDescription` with value: "Libros needs camera access to scan book barcodes"
-
-6. Build and run!
+1. Open Xcode and create a new project. Use Multiplatform > App with `Libros`, SwiftUI, and SwiftData.
+2. Delete the generated `ContentView.swift` and `LibrosApp.swift` files.
+3. Copy the contents of `Libros/Libros/` into your Xcode project: add `Models`, `Services`, `Views`, `Utilities`, and replace `LibrosApp.swift` and `Views/ContentView.swift`.
+4. Configure CloudKit in Signing & Capabilities by adding iCloud and enabling CloudKit, then select a container.
+5. Configure camera permissions by adding `NSCameraUsageDescription` to `Info.plist` with a description of camera access for barcode scanning.
+6. Build and run.
 
 ### Project Structure
 
 ```
 Libros/
-├── LibrosApp/
+├── Libros/
 │   ├── Models/           # SwiftData models
 │   ├── Services/         # API and business logic
 │   ├── Views/            # SwiftUI views

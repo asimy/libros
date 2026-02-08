@@ -4,6 +4,10 @@
 
 A cross-platform book library management system built with SwiftUI and SwiftData, starting with iOS and expanding to iPad, macOS, watchOS, and Linux.
 
+## Current State vs. Planned
+
+This document is both a roadmap and a living snapshot of the codebase. Sections marked as phases describe intended future work, while the data model, services, and structure sections aim to reflect what already exists in the repo. If something here looks out of date, treat the source code as the source of truth and update this plan accordingly.
+
 ---
 
 ## Technical Stack
@@ -82,6 +86,13 @@ A cross-platform book library management system built with SwiftUI and SwiftData
                  └─────────────────┘     │ locationDescription│
                                          └──────────────────┘
 ```
+
+### Supporting Models
+
+- `PendingLookup` and `LookupStatus` for queued/offline ISBN lookups
+- `LibraryFilter` and `SavedFilter` for persistent search filters
+- `SmartCollection` for system-generated groupings
+- `CoverImageMode` for cover display preferences
 
 ### Design Rationale: Book vs BookCopy
 
@@ -217,9 +228,21 @@ Libros/
     │   ├── BookFormat.swift
     │   ├── BookCondition.swift
     │   ├── ReadStatus.swift
-    │   └── MetadataSource.swift
+    │   ├── MetadataSource.swift
+    │   ├── PendingLookup.swift
+    │   ├── LookupStatus.swift
+    │   ├── LibraryFilter.swift
+    │   ├── SavedFilter.swift
+    │   ├── SmartCollection.swift
+    │   └── CoverImageMode.swift
     ├── Services/
-    │   └── OpenLibraryService.swift # API client (actor) + BookLookupService protocol
+    │   ├── OpenLibraryService.swift       # API client (actor) + BookLookupService protocol
+    │   ├── OfflineLookupService.swift     # Processes queued ISBN lookups
+    │   ├── CoverCacheService.swift        # Cover image caching
+    │   ├── NetworkMonitor.swift           # Connectivity status
+    │   ├── BackgroundTaskCoordinator.swift # Background scheduling
+    │   ├── LibraryExportService.swift     # Export pipeline
+    │   └── BookMetadataExtractor.swift    # OCR metadata extraction
     ├── Views/
     │   ├── ContentView.swift        # Main TabView container
     │   ├── Library/
@@ -236,7 +259,12 @@ Libros/
     │   │   ├── BarcodeScannerView.swift  # Main scanner (permissions, state, orchestration)
     │   │   ├── CameraPreviewView.swift   # UIViewRepresentable + AVCaptureSession
     │   │   ├── ScanMode.swift            # Barcode vs OCR mode enum
-    │   │   └── ScanResultView.swift      # Book found / not found result sheet
+    │   │   ├── ScanResultView.swift      # Book found / not found result sheet
+    │   │   ├── GuidedOCRView.swift       # Guided OCR flow
+    │   │   ├── QuickPhotoView.swift      # Quick photo flow
+    │   │   ├── PendingLookupsView.swift  # Offline lookup queue
+    │   │   ├── AddBookView.swift         # Unified add-book entry point
+    │   │   └── ImagePicker.swift         # Shared image picker
     │   ├── Search/
     │   │   ├── LibraryFilterView.swift  # Filter sheet for library
     │   │   └── SavedFiltersView.swift   # Manage saved filters
@@ -270,6 +298,7 @@ Libros/
     └── Utilities/
         ├── ISBNValidator.swift      # Validate check digits, convert 10↔13
         ├── ISBNParser.swift         # Extract ISBN from OCR text
+        ├── ColorUtilities.swift     # Shared color helpers
         └── Extensions/             # Placeholder (not yet implemented)
 ```
 
