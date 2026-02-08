@@ -8,6 +8,8 @@ struct LibrosApp: App {
     /// The SwiftData model container
     let modelContainer: ModelContainer
 
+    @State private var backgroundCoordinator: BackgroundTaskCoordinator?
+
     init() {
         do {
             // Configure the schema with all our models
@@ -18,7 +20,9 @@ struct LibrosApp: App {
                 Series.self,
                 Genre.self,
                 Tag.self,
-                Location.self
+                Location.self,
+                PendingLookup.self,
+                SavedFilter.self
             ])
 
             // Configure for CloudKit sync
@@ -40,6 +44,14 @@ struct LibrosApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(NetworkMonitor.shared)
+                .onAppear {
+                    if backgroundCoordinator == nil {
+                        let coordinator = BackgroundTaskCoordinator(modelContainer: modelContainer)
+                        coordinator.start()
+                        backgroundCoordinator = coordinator
+                    }
+                }
         }
         .modelContainer(modelContainer)
     }
@@ -58,7 +70,9 @@ extension ModelContainer {
                 Series.self,
                 Genre.self,
                 Tag.self,
-                Location.self
+                Location.self,
+                PendingLookup.self,
+                SavedFilter.self
             ])
 
             let configuration = ModelConfiguration(

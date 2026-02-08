@@ -3,6 +3,7 @@ import SwiftData
 
 /// Main content view with tab-based navigation
 struct ContentView: View {
+    @Environment(NetworkMonitor.self) private var networkMonitor
     @State private var selectedTab: Tab = .library
 
     enum Tab: String, CaseIterable {
@@ -43,17 +44,20 @@ struct ContentView: View {
                 }
                 .tag(Tab.authors)
 
-            BrowsePlaceholderView()
+            BrowseView()
                 .tabItem {
                     Label(Tab.browse.rawValue, systemImage: Tab.browse.systemImage)
                 }
                 .tag(Tab.browse)
 
-            SettingsPlaceholderView()
+            SettingsView()
                 .tabItem {
                     Label(Tab.settings.rawValue, systemImage: Tab.settings.systemImage)
                 }
                 .tag(Tab.settings)
+        }
+        .overlay(alignment: .top) {
+            NetworkStatusBanner(networkMonitor: networkMonitor)
         }
     }
 }
@@ -79,83 +83,10 @@ struct ScanPlaceholderView: View {
     }
 }
 
-struct BrowsePlaceholderView: View {
-    var body: some View {
-        NavigationStack {
-            List {
-                NavigationLink {
-                    Text("Genres list coming soon")
-                } label: {
-                    Label("Genres", systemImage: "tag")
-                }
-
-                NavigationLink {
-                    Text("Tags list coming soon")
-                } label: {
-                    Label("Tags", systemImage: "number")
-                }
-
-                NavigationLink {
-                    Text("Locations list coming soon")
-                } label: {
-                    Label("Locations", systemImage: "mappin.and.ellipse")
-                }
-
-                NavigationLink {
-                    Text("Series list coming soon")
-                } label: {
-                    Label("Series", systemImage: "books.vertical.fill")
-                }
-            }
-            .navigationTitle("Browse")
-        }
-    }
-}
-
-struct SettingsPlaceholderView: View {
-    var body: some View {
-        NavigationStack {
-            List {
-                Section("Sync") {
-                    HStack {
-                        Label("iCloud Sync", systemImage: "icloud")
-                        Spacer()
-                        Text("Enabled")
-                            .foregroundStyle(.secondary)
-                    }
-                }
-
-                Section("Data") {
-                    NavigationLink {
-                        Text("Export coming soon")
-                    } label: {
-                        Label("Export Library", systemImage: "square.and.arrow.up")
-                    }
-
-                    NavigationLink {
-                        Text("Import coming soon")
-                    } label: {
-                        Label("Import Data", systemImage: "square.and.arrow.down")
-                    }
-                }
-
-                Section("About") {
-                    HStack {
-                        Text("Version")
-                        Spacer()
-                        Text("1.0.0")
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-            .navigationTitle("Settings")
-        }
-    }
-}
-
 // MARK: - Preview
 
 #Preview {
     ContentView()
+        .environment(NetworkMonitor.shared)
         .modelContainer(.preview)
 }

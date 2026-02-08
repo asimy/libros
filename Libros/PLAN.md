@@ -237,10 +237,36 @@ Libros/
     │   │   ├── CameraPreviewView.swift   # UIViewRepresentable + AVCaptureSession
     │   │   ├── ScanMode.swift            # Barcode vs OCR mode enum
     │   │   └── ScanResultView.swift      # Book found / not found result sheet
-    │   ├── Search/                  # Placeholder (not yet implemented)
-    │   ├── Browse/                  # Placeholder (not yet implemented)
-    │   ├── Settings/                # Placeholder (not yet implemented)
-    │   └── Components/              # Placeholder (not yet implemented)
+    │   ├── Search/
+    │   │   ├── LibraryFilterView.swift  # Filter sheet for library
+    │   │   └── SavedFiltersView.swift   # Manage saved filters
+    │   ├── Browse/
+    │   │   ├── BrowseView.swift         # Browse tab with collections + organize sections
+    │   │   ├── GenreListView.swift      # Genre list with hierarchy
+    │   │   ├── GenreDetailView.swift
+    │   │   ├── GenreEditView.swift
+    │   │   ├── TagListView.swift        # Tag list with colors
+    │   │   ├── TagDetailView.swift
+    │   │   ├── TagEditView.swift
+    │   │   ├── LocationListView.swift   # Location list
+    │   │   ├── LocationDetailView.swift
+    │   │   ├── LocationEditView.swift
+    │   │   ├── SeriesListView.swift     # Series list with progress
+    │   │   ├── SeriesDetailView.swift
+    │   │   ├── SeriesEditView.swift
+    │   │   ├── SmartCollectionsView.swift
+    │   │   └── SmartCollectionDetailView.swift
+    │   ├── Settings/
+    │   │   ├── SettingsView.swift       # Full settings view
+    │   │   ├── ExportView.swift         # Library export
+    │   │   └── ImportView.swift         # Library import
+    │   └── Components/
+    │       ├── NetworkStatusBanner.swift
+    │       ├── FlowLayout.swift         # Shared wrapping layout
+    │       ├── GenrePickerView.swift     # Multi-select genre picker
+    │       ├── TagPickerView.swift       # Multi-select tag picker
+    │       ├── BookCopyEditView.swift    # Inline copy editor
+    │       └── MarkdownNotesView.swift   # Markdown notes editor
     └── Utilities/
         ├── ISBNValidator.swift      # Validate check digits, convert 10↔13
         ├── ISBNParser.swift         # Extract ISBN from OCR text
@@ -333,10 +359,10 @@ Libros/
 - [x] Tab-based navigation (Library, Scan, Authors, Browse, Settings)
 
 #### 1.7 Offline Support
-- [ ] Ensure all CRUD operations work offline
-- [ ] Cache cover images locally
-- [ ] Queue API lookups for when online
-- [ ] Show sync status indicator
+- [x] Ensure all CRUD operations work offline
+- [x] Cache cover images locally
+- [x] Queue API lookups for when online
+- [x] Show sync status indicator
 
 ### Phase 2: iOS Polish
 
@@ -344,24 +370,24 @@ Libros/
 
 #### 2.1 Enhanced Organization
 - [x] Author list and detail views
-- [ ] Genre browsing with hierarchy
-- [ ] Tag management (create, edit, delete, assign)
-- [ ] Location management
-- [ ] Series browsing
-- [ ] Smart collections (recently added, currently reading, etc.)
+- [x] Genre browsing with hierarchy
+- [x] Tag management (create, edit, delete, assign)
+- [x] Location management
+- [x] Series browsing
+- [x] Smart collections (recently added, currently reading, etc.)
 
 #### 2.2 Advanced Search
-- [ ] Full-text search across all fields
-- [ ] Filter by author, genre, tag, location, read status
+- [x] Full-text search across all fields
+- [x] Filter by author, genre, tag, location, read status
 - [x] Sort options (title, author, date added, rating)
-- [ ] Save search filters
+- [x] Save search filters
 
 #### 2.3 Additional Features
 - [x] Star rating system (interactive in BookDetailView)
 - [x] Read status tracking (inline picker in BookDetailView)
-- [ ] Rich notes with basic formatting
-- [ ] Share book details
-- [ ] Import/export data (JSON)
+- [x] Rich notes with basic formatting
+- [x] Share book details
+- [x] Import/export data (JSON)
 
 ### Phase 3: iPad Optimization
 
