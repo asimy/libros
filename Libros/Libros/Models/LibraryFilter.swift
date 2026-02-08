@@ -1,8 +1,7 @@
 import Foundation
 
-/// Observable filter state for the library view
-@Observable
-class LibraryFilter {
+/// Value-type filter state for the library view
+struct LibraryFilter {
     var authorIDs: Set<UUID> = []
     var genreIDs: Set<UUID> = []
     var tagIDs: Set<UUID> = []
@@ -33,7 +32,7 @@ class LibraryFilter {
     }
 
     /// Resets all filters
-    func reset() {
+    mutating func reset() {
         authorIDs = []
         genreIDs = []
         tagIDs = []

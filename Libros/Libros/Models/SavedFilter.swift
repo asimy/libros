@@ -39,7 +39,7 @@ final class SavedFilter {
 
     /// Converts this SavedFilter to a LibraryFilter
     func toFilter() -> LibraryFilter {
-        let filter = LibraryFilter()
+        var filter = LibraryFilter()
         let decoder = JSONDecoder()
 
         if let data = authorIDsData,

@@ -444,11 +444,31 @@ struct BookEditView: View {
         // Handle authors
         updateAuthors(for: targetBook)
 
-        // Handle genres
-        targetBook.genres = existingGenres.filter { selectedGenreIDs.contains($0.id) }
+        // Handle genres — explicitly update both sides for SwiftData persistence
+        let selectedGenres = existingGenres.filter { selectedGenreIDs.contains($0.id) }
+        for genre in targetBook.genres where !selectedGenreIDs.contains(genre.id) {
+            genre.books.removeAll { $0.id == targetBook.id }
+        }
+        targetBook.genres.removeAll()
+        for genre in selectedGenres {
+            targetBook.genres.append(genre)
+            if !genre.books.contains(where: { $0.id == targetBook.id }) {
+                genre.books.append(targetBook)
+            }
+        }
 
-        // Handle tags
-        targetBook.tags = existingTags.filter { selectedTagIDs.contains($0.id) }
+        // Handle tags — explicitly update both sides for SwiftData persistence
+        let selectedTags = existingTags.filter { selectedTagIDs.contains($0.id) }
+        for tag in targetBook.tags where !selectedTagIDs.contains(tag.id) {
+            tag.books.removeAll { $0.id == targetBook.id }
+        }
+        targetBook.tags.removeAll()
+        for tag in selectedTags {
+            targetBook.tags.append(tag)
+            if !tag.books.contains(where: { $0.id == targetBook.id }) {
+                tag.books.append(targetBook)
+            }
+        }
 
         // Handle series
         if let seriesID = selectedSeriesID {
