@@ -1,11 +1,13 @@
 import SwiftUI
 import SwiftData
 
-/// Multi-select genre picker with hierarchy indentation
+/// Multi-select genre picker with hierarchy indentation and inline creation
 struct GenrePickerView: View {
+    @Environment(\.modelContext) private var modelContext
     @Query(sort: \Genre.name) private var allGenres: [Genre]
     @Binding var selectedGenreIDs: Set<UUID>
     @State private var searchText = ""
+    @State private var newGenreName = ""
 
     private var filteredGenres: [Genre] {
         if searchText.isEmpty {
@@ -17,6 +19,23 @@ struct GenrePickerView: View {
 
     var body: some View {
         List {
+            // New genre row
+            Section {
+                HStack {
+                    TextField("New genre name", text: $newGenreName)
+
+                    Button {
+                        createAndSelectGenre()
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundStyle(.blue)
+                    }
+                    .disabled(newGenreName.isEmpty)
+                }
+            }
+
+            // Existing genres
+            Section {
             ForEach(filteredGenres) { genre in
                 Button {
                     toggleGenre(genre)
@@ -48,6 +67,7 @@ struct GenrePickerView: View {
                     }
                 }
             }
+            }
         }
         .listStyle(.insetGrouped)
         .searchable(text: $searchText, prompt: "Search genres...")
@@ -61,5 +81,15 @@ struct GenrePickerView: View {
         } else {
             selectedGenreIDs.insert(genre.id)
         }
+    }
+
+    private func createAndSelectGenre() {
+        let trimmedName = newGenreName.trimmingCharacters(in: .whitespaces)
+        guard !trimmedName.isEmpty else { return }
+
+        let genre = Genre(name: trimmedName)
+        modelContext.insert(genre)
+        selectedGenreIDs.insert(genre.id)
+        newGenreName = ""
     }
 }

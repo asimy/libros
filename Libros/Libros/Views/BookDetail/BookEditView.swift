@@ -461,6 +461,7 @@ struct BookEditView: View {
 
         targetBook.updateSearchableText()
 
+        try? modelContext.save()
         dismiss()
     }
 
