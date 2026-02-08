@@ -65,6 +65,9 @@ final class Book {
     /// Current reading status
     var readStatus: ReadStatus
 
+    /// How this book's metadata was originally obtained
+    var metadataSource: MetadataSource = MetadataSource.manual
+
     // MARK: - Series Information
 
     /// Position in series (1, 2, 3, etc.)
@@ -164,7 +167,8 @@ final class Book {
         subtitle: String? = nil,
         isbn10: String? = nil,
         isbn13: String? = nil,
-        readStatus: ReadStatus = .unread
+        readStatus: ReadStatus = .unread,
+        metadataSource: MetadataSource = .manual
     ) {
         self.id = UUID()
         self.title = title
@@ -172,6 +176,7 @@ final class Book {
         self.isbn10 = isbn10
         self.isbn13 = isbn13
         self.readStatus = readStatus
+        self.metadataSource = metadataSource
         self.dateAdded = Date()
         self.dateModified = Date()
         self.searchableText = title

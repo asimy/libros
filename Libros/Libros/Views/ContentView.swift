@@ -7,7 +7,7 @@ struct ContentView: View {
 
     enum Tab: String, CaseIterable {
         case library = "Library"
-        case scan = "Scan"
+        case add = "Add"
         case authors = "Authors"
         case browse = "Browse"
         case settings = "Settings"
@@ -15,7 +15,7 @@ struct ContentView: View {
         var systemImage: String {
             switch self {
             case .library: return "books.vertical"
-            case .scan: return "barcode.viewfinder"
+            case .add: return "plus.circle"
             case .authors: return "person.2"
             case .browse: return "folder"
             case .settings: return "gear"
@@ -31,11 +31,11 @@ struct ContentView: View {
                 }
                 .tag(Tab.library)
 
-            BarcodeScannerView()
+            AddBookView(isSheet: false)
                 .tabItem {
-                    Label(Tab.scan.rawValue, systemImage: Tab.scan.systemImage)
+                    Label(Tab.add.rawValue, systemImage: Tab.add.systemImage)
                 }
-                .tag(Tab.scan)
+                .tag(Tab.add)
 
             AuthorListView()
                 .tabItem {

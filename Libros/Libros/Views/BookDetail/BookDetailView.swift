@@ -358,6 +358,12 @@ struct BookDetailView: View {
 
     private var metadataSection: some View {
         VStack(alignment: .leading, spacing: 4) {
+            if book.metadataSource != .manual {
+                Label(book.metadataSource.displayName, systemImage: book.metadataSource.systemImage)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Text("Added \(book.dateAdded.formatted(date: .abbreviated, time: .omitted))")
                 .font(.caption)
                 .foregroundStyle(.secondary)

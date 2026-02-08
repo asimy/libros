@@ -52,7 +52,7 @@ struct BookRowView: View {
                let uiImage = UIImage(data: coverData) {
                 Image(uiImage: uiImage)
                     .resizable()
-                    .aspectRatio(contentMode: .fill)
+                    .aspectRatio(contentMode: .fit)
             } else if let coverURL = book.coverURL ?? book.openLibraryCoverURL {
                 AsyncImage(url: coverURL) { phase in
                     switch phase {
@@ -61,7 +61,7 @@ struct BookRowView: View {
                     case .success(let image):
                         image
                             .resizable()
-                            .aspectRatio(contentMode: .fill)
+                            .aspectRatio(contentMode: .fit)
                     case .failure:
                         placeholderCover
                     @unknown default:

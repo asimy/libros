@@ -16,6 +16,9 @@ struct ScanResultView: View {
     let mode: Mode
     let onScanAgain: () -> Void
     let onEditManually: (String) -> Void
+    var onBookAdded: (() -> Void)? = nil
+    var onTryGuidedOCR: (() -> Void)? = nil
+    var onTryQuickPhoto: (() -> Void)? = nil
 
     @State private var isSaving = false
 
@@ -164,6 +167,30 @@ struct ScanResultView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.large)
+
+                if let onTryGuidedOCR {
+                    Button {
+                        dismiss()
+                        onTryGuidedOCR()
+                    } label: {
+                        Label("Try Guided OCR", systemImage: "text.viewfinder")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                }
+
+                if let onTryQuickPhoto {
+                    Button {
+                        dismiss()
+                        onTryQuickPhoto()
+                    } label: {
+                        Label("Quick Photo", systemImage: "camera")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                }
             }
         }
         .padding()
@@ -175,7 +202,7 @@ struct ScanResultView: View {
     private func addToLibrary(_ metadata: OpenLibraryService.BookMetadata) {
         isSaving = true
 
-        let book = Book(title: metadata.title)
+        let book = Book(title: metadata.title, metadataSource: .openLibrary)
         book.subtitle = metadata.subtitle
         book.isbn13 = metadata.isbn13
         book.isbn10 = metadata.isbn10
@@ -221,5 +248,6 @@ struct ScanResultView: View {
 
         isSaving = false
         dismiss()
+        onBookAdded?()
     }
 }

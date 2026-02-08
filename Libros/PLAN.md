@@ -302,27 +302,27 @@ Libros/
 - [x] Toggle between barcode and OCR modes in scanner UI
 
 #### 1.5 Consolidated Add Book Flow
-- [ ] **Unified "Add Book" screen** accessible from Scan tab and Library "+" button
-  - [ ] Four peer entry methods presented as clear choices:
+- [x] **Unified "Add Book" screen** accessible from Add tab and Library "+" button
+  - [x] Four peer entry methods presented as clear choices:
     1. **ISBN Lookup** — scan barcode/OCR ISBN, then Open Library (existing flow)
     2. **Guided OCR** — step through physical book pages to extract metadata
     3. **Quick Photo** — cover photo + minimal form
     4. **Manual Entry** — full form with all fields (existing BookEditView)
-  - [ ] When ISBN Lookup fails (not found), offer to continue with methods 2–4
-- [ ] **Metadata source tracking**:
-  - [ ] `MetadataSource` enum: `.openLibrary`, `.ocrExtraction`, `.quickPhoto`, `.manual`
-  - [ ] `metadataSource` field on `Book` model (last non-manual source wins)
-  - [ ] Set automatically based on which entry method populated the data
-  - [ ] Display source in BookDetailView (subtle, informational)
-- [ ] **Guided OCR flow**:
-  - [ ] Step 1: Capture cover photo (saved as coverData)
-  - [ ] Step 2: OCR scan title page (extract title, subtitle, authors)
-  - [ ] Step 3: OCR scan copyright page (extract publisher, date, ISBN)
-  - [ ] Step 4: Optional back cover scan (extract synopsis)
-  - [ ] Step 5: Review/edit extracted data before saving
-- [ ] **Quick Photo flow**:
-  - [ ] Capture cover photo
-  - [ ] Minimal form: title + author (required), other fields optional
+  - [x] When ISBN Lookup fails (not found), offer to continue with methods 2–4
+- [x] **Metadata source tracking**:
+  - [x] `MetadataSource` enum: `.openLibrary`, `.ocrExtraction`, `.quickPhoto`, `.manual`
+  - [x] `metadataSource` field on `Book` model (last non-manual source wins)
+  - [x] Set automatically based on which entry method populated the data
+  - [x] Display source in BookDetailView (subtle, informational)
+- [x] **Guided OCR flow**:
+  - [x] Step 1: Capture cover photo (saved as coverData)
+  - [x] Step 2: OCR scan title page (extract title, subtitle, authors)
+  - [x] Step 3: OCR scan copyright page (extract publisher, date, ISBN)
+  - [x] Step 4: Optional back cover scan (extract synopsis)
+  - [x] Step 5: Review/edit extracted data before saving
+- [x] **Quick Photo flow**:
+  - [x] Capture cover photo
+  - [x] Minimal form: title + author (required), other fields optional
 
 #### 1.6 Core Views
 - [x] Library view (list and grid modes)

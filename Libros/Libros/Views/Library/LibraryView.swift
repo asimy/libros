@@ -109,7 +109,7 @@ struct LibraryView: View {
                 }
             }
             .sheet(isPresented: $showingAddBook) {
-                BookEditView(book: nil)
+                AddBookView()
             }
         }
     }
@@ -120,7 +120,7 @@ struct LibraryView: View {
         ContentUnavailableView {
             Label("No Books", systemImage: "books.vertical")
         } description: {
-            Text("Your library is empty. Tap the + button to add your first book, or use the Scan tab to scan a barcode.")
+            Text("Your library is empty. Tap the + button to add your first book, or use the Add tab.")
         } actions: {
             Button {
                 showingAddBook = true

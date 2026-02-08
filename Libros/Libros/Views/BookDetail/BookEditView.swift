@@ -10,6 +10,7 @@ struct BookEditView: View {
 
     let book: Book?
     var initialISBN: String? = nil
+    var isEmbedded: Bool = false
 
     // MARK: - Form State
 
@@ -42,50 +43,59 @@ struct BookEditView: View {
     private var isNewBook: Bool { book == nil }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                // ISBN Section
-                isbnSection
-
-                // Book Info Section
-                bookInfoSection
-
-                // Authors Section
-                authorsSection
-
-                // Publication Section
-                publicationSection
-
-                // Synopsis Section
-                synopsisSection
-
-                // Status Section
-                statusSection
-
-                // Notes Section
-                notesSection
-            }
-            .scrollContentBackground(.visible)
-            .scrollDismissesKeyboard(.interactively)
-            .navigationTitle(isNewBook ? "Add Book" : "Edit Book")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
+        if isEmbedded {
+            editForm
+        } else {
+            NavigationStack {
+                editForm
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Cancel") {
+                                dismiss()
+                            }
+                        }
                     }
-                }
+            }
+        }
+    }
 
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        saveBook()
-                    }
-                    .disabled(title.isEmpty)
+    private var editForm: some View {
+        Form {
+            // ISBN Section
+            isbnSection
+
+            // Book Info Section
+            bookInfoSection
+
+            // Authors Section
+            authorsSection
+
+            // Publication Section
+            publicationSection
+
+            // Synopsis Section
+            synopsisSection
+
+            // Status Section
+            statusSection
+
+            // Notes Section
+            notesSection
+        }
+        .scrollContentBackground(.visible)
+        .scrollDismissesKeyboard(.interactively)
+        .navigationTitle(isNewBook ? "Add Book" : "Edit Book")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Save") {
+                    saveBook()
                 }
+                .disabled(title.isEmpty)
             }
-            .onAppear {
-                loadBookData()
-            }
+        }
+        .onAppear {
+            loadBookData()
         }
     }
 

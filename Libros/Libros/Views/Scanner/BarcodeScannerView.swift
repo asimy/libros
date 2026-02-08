@@ -6,6 +6,15 @@ import AVFoundation
 struct BarcodeScannerView: View {
     @Environment(\.modelContext) private var modelContext
 
+    /// When true, skip the NavigationStack wrapper (AddBookView provides it)
+    var isEmbedded: Bool = false
+
+    /// Called when a book is successfully added (to dismiss the entire AddBookView)
+    var onBookAdded: (() -> Void)? = nil
+
+    /// Called when user wants to switch to a different add method from not-found state
+    var onSwitchMethod: ((AddBookView.Destination) -> Void)? = nil
+
     // MARK: - State
 
     enum ScanState: Equatable {
@@ -51,32 +60,40 @@ struct BarcodeScannerView: View {
     @State private var ocrConfirmationBuffer: [String] = []
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                switch cameraPermission {
-                case .notDetermined:
-                    permissionRequestView
-                case .authorized:
-                    scannerView
-                case .denied:
-                    permissionDeniedView
-                case .restricted:
-                    permissionDeniedView
-                }
+        if isEmbedded {
+            scannerContent
+        } else {
+            NavigationStack {
+                scannerContent
             }
-            .navigationTitle("Scan")
-            .navigationBarTitleDisplayMode(.inline)
-            .onAppear {
-                checkCameraPermission()
+        }
+    }
+
+    private var scannerContent: some View {
+        ZStack {
+            switch cameraPermission {
+            case .notDetermined:
+                permissionRequestView
+            case .authorized:
+                scannerView
+            case .denied:
+                permissionDeniedView
+            case .restricted:
+                permissionDeniedView
             }
-            .sheet(isPresented: $showResultSheet, onDismiss: {
-                resetToScanning()
-            }) {
-                resultSheet
-            }
-            .sheet(isPresented: $showEditSheet) {
-                BookEditView(book: nil, initialISBN: editISBN)
-            }
+        }
+        .navigationTitle("ISBN Lookup")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            checkCameraPermission()
+        }
+        .sheet(isPresented: $showResultSheet, onDismiss: {
+            resetToScanning()
+        }) {
+            resultSheet
+        }
+        .sheet(isPresented: $showEditSheet) {
+            BookEditView(book: nil, initialISBN: editISBN)
         }
     }
 
@@ -256,7 +273,8 @@ struct BarcodeScannerView: View {
                 onEditManually: { isbn in
                     editISBN = isbn
                     showEditSheet = true
-                }
+                },
+                onBookAdded: onBookAdded
             )
         case .notFound(let isbn):
             ScanResultView(
@@ -265,7 +283,15 @@ struct BarcodeScannerView: View {
                 onEditManually: { isbn in
                     editISBN = isbn
                     showEditSheet = true
-                }
+                },
+                onTryGuidedOCR: onSwitchMethod != nil ? {
+                    showResultSheet = false
+                    onSwitchMethod?(.guidedOCR)
+                } : nil,
+                onTryQuickPhoto: onSwitchMethod != nil ? {
+                    showResultSheet = false
+                    onSwitchMethod?(.quickPhoto)
+                } : nil
             )
         default:
             EmptyView()
