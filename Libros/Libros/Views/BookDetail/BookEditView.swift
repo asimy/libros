@@ -9,6 +9,7 @@ struct BookEditView: View {
     @Query(sort: \Author.sortName) private var existingAuthors: [Author]
 
     let book: Book?
+    var initialISBN: String? = nil
 
     // MARK: - Form State
 
@@ -235,22 +236,25 @@ struct BookEditView: View {
     // MARK: - Data Methods
 
     private func loadBookData() {
-        guard let book = book else { return }
-
-        title = book.title
-        subtitle = book.subtitle ?? ""
-        authorNames = book.authors.map(\.name).joined(separator: ", ")
-        isbn13 = book.isbn13 ?? ""
-        isbn10 = book.isbn10 ?? ""
-        publisher = book.publisher ?? ""
-        publishYear = book.publishYear ?? ""
-        pageCount = book.pageCount.map { String($0) } ?? ""
-        language = book.language ?? ""
-        synopsis = book.synopsis ?? ""
-        notes = book.notes ?? ""
-        readStatus = book.readStatus
-        rating = book.rating
-        coverURL = book.coverURL
+        if let book = book {
+            title = book.title
+            subtitle = book.subtitle ?? ""
+            authorNames = book.authors.map(\.name).joined(separator: ", ")
+            isbn13 = book.isbn13 ?? ""
+            isbn10 = book.isbn10 ?? ""
+            publisher = book.publisher ?? ""
+            publishYear = book.publishYear ?? ""
+            pageCount = book.pageCount.map { String($0) } ?? ""
+            language = book.language ?? ""
+            synopsis = book.synopsis ?? ""
+            notes = book.notes ?? ""
+            readStatus = book.readStatus
+            rating = book.rating
+            coverURL = book.coverURL
+        } else if let initialISBN, !initialISBN.isEmpty {
+            isbn13 = initialISBN
+            lookupISBN()
+        }
     }
 
     private func saveBook() {

@@ -31,7 +31,7 @@ struct ContentView: View {
                 }
                 .tag(Tab.library)
 
-            ScanPlaceholderView()
+            BarcodeScannerView()
                 .tabItem {
                     Label(Tab.scan.rawValue, systemImage: Tab.scan.systemImage)
                 }

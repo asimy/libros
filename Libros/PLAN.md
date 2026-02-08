@@ -118,6 +118,7 @@ A **Book** represents the bibliographic work (title, author, ISBN, synopsis). A 
 | `notes` | String? | User notes |
 | `rating` | Int? | 1-5 star rating |
 | `readStatus` | ReadStatus | .unread, .reading, .read |
+| `metadataSource` | MetadataSource | .openLibrary, .ocrExtraction, .quickPhoto, .manual — last non-manual source wins |
 | `searchableText` | String | Denormalized search field, `@Attribute(.spotlight)` |
 | `dateAdded` | Date | Auto-set on creation |
 | `dateModified` | Date | Auto-updated |
@@ -215,7 +216,8 @@ Libros/
     │   ├── Location.swift
     │   ├── BookFormat.swift
     │   ├── BookCondition.swift
-    │   └── ReadStatus.swift
+    │   ├── ReadStatus.swift
+    │   └── MetadataSource.swift
     ├── Services/
     │   └── OpenLibraryService.swift # API client (actor) + BookLookupService protocol
     ├── Views/
@@ -230,7 +232,11 @@ Libros/
     │   ├── Authors/
     │   │   ├── AuthorListView.swift
     │   │   └── AuthorDetailView.swift
-    │   ├── Scanner/                 # Placeholder (not yet implemented)
+    │   ├── Scanner/
+    │   │   ├── BarcodeScannerView.swift  # Main scanner (permissions, state, orchestration)
+    │   │   ├── CameraPreviewView.swift   # UIViewRepresentable + AVCaptureSession
+    │   │   ├── ScanMode.swift            # Barcode vs OCR mode enum
+    │   │   └── ScanResultView.swift      # Book found / not found result sheet
     │   ├── Search/                  # Placeholder (not yet implemented)
     │   ├── Browse/                  # Placeholder (not yet implemented)
     │   ├── Settings/                # Placeholder (not yet implemented)
@@ -268,7 +274,7 @@ Libros/
 - [x] Create Xcode project with iOS target
 - [x] Configure SwiftData with CloudKit
 - [x] Set up project structure
-- [ ] Add app icons and launch screen
+- [x] Add app icons and launch screen
 
 #### 1.2 Data Layer
 - [x] Define SwiftData models (Book, BookCopy, Author, Series, Genre, Tag, Location)
@@ -285,19 +291,29 @@ Libros/
 - [ ] Cache responses for offline use
 
 #### 1.4 ISBN Capture (Barcode + OCR)
-- [ ] Implement camera-based barcode scanner (AVFoundation)
-- [ ] Support EAN-13 (ISBN-13) and UPC-A barcode formats
-- [ ] Implement OCR scanning for printed ISBN text (Vision framework)
+- [x] Implement camera-based barcode scanner (AVFoundation)
+- [x] Support EAN-13 (ISBN-13) and UPC-A barcode formats
+- [x] Implement OCR scanning for printed ISBN text (Vision framework)
 - [x] ISBN validation for both 10 and 13 digit formats
 - [x] Auto-convert ISBN-10 to ISBN-13 for API lookups
 - [x] Add manual ISBN entry fallback (ISBN fields in BookEditView)
-- [ ] Handle camera permissions
-- [ ] Provide haptic/audio feedback on successful scan
-- [ ] Toggle between barcode and OCR modes in scanner UI
+- [x] Handle camera permissions
+- [x] Provide haptic/audio feedback on successful scan
+- [x] Toggle between barcode and OCR modes in scanner UI
 
-#### 1.5 "Book Not Found" Workflow
-- [ ] Detection when Open Library returns no results
-- [ ] Present three options: Guided OCR, Quick Photo, Manual Entry
+#### 1.5 Consolidated Add Book Flow
+- [ ] **Unified "Add Book" screen** accessible from Scan tab and Library "+" button
+  - [ ] Four peer entry methods presented as clear choices:
+    1. **ISBN Lookup** — scan barcode/OCR ISBN, then Open Library (existing flow)
+    2. **Guided OCR** — step through physical book pages to extract metadata
+    3. **Quick Photo** — cover photo + minimal form
+    4. **Manual Entry** — full form with all fields (existing BookEditView)
+  - [ ] When ISBN Lookup fails (not found), offer to continue with methods 2–4
+- [ ] **Metadata source tracking**:
+  - [ ] `MetadataSource` enum: `.openLibrary`, `.ocrExtraction`, `.quickPhoto`, `.manual`
+  - [ ] `metadataSource` field on `Book` model (last non-manual source wins)
+  - [ ] Set automatically based on which entry method populated the data
+  - [ ] Display source in BookDetailView (subtle, informational)
 - [ ] **Guided OCR flow**:
   - [ ] Step 1: Capture cover photo (saved as coverData)
   - [ ] Step 2: OCR scan title page (extract title, subtitle, authors)
@@ -307,15 +323,12 @@ Libros/
 - [ ] **Quick Photo flow**:
   - [ ] Capture cover photo
   - [ ] Minimal form: title + author (required), other fields optional
-- [ ] **Manual Entry flow**:
-  - [ ] Full form with all fields
-  - [ ] Optional cover photo
 
 #### 1.6 Core Views
 - [x] Library view (list and grid modes)
 - [x] Book detail view
 - [x] Add/edit book view (with ISBN lookup integration)
-- [ ] Scan flow (scan → lookup → confirm/not-found → save)
+- [x] Scan flow (scan → lookup → confirm/not-found → save)
 - [x] Basic search (title, author, ISBN in LibraryView)
 - [x] Tab-based navigation (Library, Scan, Authors, Browse, Settings)
 
@@ -588,9 +601,10 @@ TabView (ContentView.swift)
 │   ├── All Books (list/grid toggle, sort, search)
 │   ├── → Book Detail
 │   │   └── → Edit Book
-│   └── Add Book sheet
-├── Scan (placeholder)
-│   └── "Barcode and OCR scanning coming soon"
+│   └── Add Book sheet (unified: ISBN Lookup, Guided OCR, Quick Photo, Manual)
+├── Scan ✅
+│   ├── ISBN scanner (barcode + OCR text mode toggle)
+│   └── → Scan result → Add Book flow (on not found)
 ├── Authors ✅
 │   ├── Author list (alphabetically grouped, searchable)
 │   └── → Author detail (shows books)
