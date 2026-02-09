@@ -3,6 +3,7 @@ import SwiftData
 
 /// Real settings view replacing the placeholder
 struct SettingsView: View {
+    @AppStorage("iCloudSyncEnabled") private var iCloudSyncEnabled: Bool = true
     @AppStorage("coverImageMode") private var coverImageMode: CoverImageMode = .syncWithCloudKit
 
     @Query(sort: \SavedFilter.dateSaved, order: .reverse)
@@ -13,13 +14,14 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("Sync") {
-                    HStack {
+                Section {
+                    Toggle(isOn: $iCloudSyncEnabled) {
                         Label("iCloud Sync", systemImage: "icloud")
-                        Spacer()
-                        Text("Enabled")
-                            .foregroundStyle(.secondary)
                     }
+                } header: {
+                    Text("Sync")
+                } footer: {
+                    Text("When disabled, your library data is stored locally only. Changes take effect on next app launch.")
                 }
 
                 Section {

@@ -25,11 +25,13 @@ struct LibrosApp: App {
                 SavedFilter.self
             ])
 
-            // Configure for CloudKit sync
+            // Read iCloud sync preference (use UserDefaults directly since @AppStorage isn't available in init)
+            let iCloudSyncEnabled = UserDefaults.standard.object(forKey: "iCloudSyncEnabled") as? Bool ?? true
+
             let modelConfiguration = ModelConfiguration(
                 schema: schema,
                 isStoredInMemoryOnly: false,
-                cloudKitDatabase: .automatic
+                cloudKitDatabase: iCloudSyncEnabled ? .automatic : .none
             )
 
             modelContainer = try ModelContainer(
