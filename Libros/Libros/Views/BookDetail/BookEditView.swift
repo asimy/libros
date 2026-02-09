@@ -21,8 +21,7 @@ struct BookEditView: View {
     @State private var title: String = ""
     @State private var subtitle: String = ""
     @State private var authorNames: String = ""  // Comma-separated for input
-    @State private var isbn13: String = ""
-    @State private var isbn10: String = ""
+    @State private var isbn: String = ""
     @State private var publisher: String = ""
     @State private var publishYear: String = ""
     @State private var pageCount: String = ""
@@ -127,7 +126,7 @@ struct BookEditView: View {
     private var isbnSection: some View {
         Section {
             HStack {
-                TextField("ISBN-13", text: $isbn13)
+                TextField("ISBN", text: $isbn)
                     .keyboardType(.numberPad)
                     .textContentType(.none)
                     .autocorrectionDisabled()
@@ -141,13 +140,8 @@ struct BookEditView: View {
                         Image(systemName: "magnifyingglass")
                     }
                 }
-                .disabled(isbn13.isEmpty || isLookingUp)
+                .disabled(isbn.isEmpty || isLookingUp)
             }
-
-            TextField("ISBN-10", text: $isbn10)
-                .keyboardType(.numberPad)
-                .textContentType(.none)
-                .autocorrectionDisabled()
 
             if let error = lookupError {
                 Label(error, systemImage: "exclamationmark.triangle")
@@ -163,7 +157,7 @@ struct BookEditView: View {
         } header: {
             Text("ISBN")
         } footer: {
-            Text("Enter an ISBN and tap the search button to auto-fill from Open Library.")
+            Text("Enter an ISBN-10 or ISBN-13 and tap the search button to auto-fill from Open Library.")
         }
     }
 
@@ -385,8 +379,7 @@ struct BookEditView: View {
             title = book.title
             subtitle = book.subtitle ?? ""
             authorNames = book.authors.map(\.name).joined(separator: ", ")
-            isbn13 = book.isbn13 ?? ""
-            isbn10 = book.isbn10 ?? ""
+            isbn = book.isbn13 ?? book.isbn10 ?? ""
             publisher = book.publisher ?? ""
             publishYear = book.publishYear ?? ""
             pageCount = book.pageCount.map { String($0) } ?? ""
@@ -403,7 +396,7 @@ struct BookEditView: View {
             selectedSeriesID = book.series?.id
             seriesOrderText = book.seriesOrder.map { String($0) } ?? ""
         } else if let initialISBN, !initialISBN.isEmpty {
-            isbn13 = initialISBN
+            isbn = initialISBN
             lookupISBN()
         }
     }
@@ -420,8 +413,18 @@ struct BookEditView: View {
         // Basic fields
         targetBook.title = title
         targetBook.subtitle = subtitle.isEmpty ? nil : subtitle
-        targetBook.isbn13 = isbn13.isEmpty ? nil : isbn13
-        targetBook.isbn10 = isbn10.isEmpty ? nil : isbn10
+        // Auto-detect ISBN format by length
+        let trimmedISBN = isbn.trimmingCharacters(in: .whitespaces)
+        if trimmedISBN.count == 13 {
+            targetBook.isbn13 = trimmedISBN
+            targetBook.isbn10 = nil
+        } else if trimmedISBN.count == 10 {
+            targetBook.isbn10 = trimmedISBN
+            targetBook.isbn13 = nil
+        } else if trimmedISBN.isEmpty {
+            targetBook.isbn13 = nil
+            targetBook.isbn10 = nil
+        }
         targetBook.publisher = publisher.isEmpty ? nil : publisher
         targetBook.pageCount = Int(pageCount)
         targetBook.language = language.isEmpty ? nil : language
@@ -523,7 +526,7 @@ struct BookEditView: View {
     // MARK: - API Lookup
 
     private func lookupISBN() {
-        guard !isbn13.isEmpty else { return }
+        guard !isbn.isEmpty else { return }
 
         if !NetworkMonitor.shared.isConnected {
             lookupError = "You're offline. ISBN lookup requires an internet connection."
@@ -537,7 +540,7 @@ struct BookEditView: View {
         Task {
             do {
                 let service = OpenLibraryService()
-                let metadata = try await service.lookupByISBN(isbn13)
+                let metadata = try await service.lookupByISBN(isbn)
 
                 await MainActor.run {
                     // Basic info
@@ -560,12 +563,11 @@ struct BookEditView: View {
                         publishYear = extractYear(from: dateStr)
                     }
 
-                    // ISBNs
-                    if let isbn = metadata.isbn13 {
-                        isbn13 = isbn
-                    }
-                    if let isbn = metadata.isbn10 {
-                        isbn10 = isbn
+                    // Prefer ISBN-13 from response
+                    if let isbn13 = metadata.isbn13 {
+                        isbn = isbn13
+                    } else if let isbn10 = metadata.isbn10 {
+                        isbn = isbn10
                     }
 
                     // Cover
