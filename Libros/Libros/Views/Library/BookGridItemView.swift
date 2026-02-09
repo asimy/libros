@@ -8,7 +8,7 @@ struct BookGridItemView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Cover image
-            coverImage
+            BookCoverView(book: book, size: .large)
                 .overlay(alignment: .topTrailing) {
                     if book.readStatus == .reading {
                         readingBadge
@@ -37,65 +37,6 @@ struct BookGridItemView: View {
     }
 
     // MARK: - Subviews
-
-    private var coverImage: some View {
-        Group {
-            if let coverData = book.coverData,
-               let uiImage = UIImage(data: coverData) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-            } else if let coverURL = book.coverURL ?? book.openLibraryCoverURL {
-                AsyncImage(url: coverURL) { phase in
-                    switch phase {
-                    case .empty:
-                        placeholderCover
-                            .overlay {
-                                ProgressView()
-                            }
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                    case .failure:
-                        placeholderCover
-                    @unknown default:
-                        placeholderCover
-                    }
-                }
-            } else {
-                placeholderCover
-            }
-        }
-        .frame(height: 180)
-        .frame(maxWidth: .infinity)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
-    }
-
-    private var placeholderCover: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 8)
-                .fill(
-                    LinearGradient(
-                        colors: [.secondary.opacity(0.3), .secondary.opacity(0.1)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-
-            VStack(spacing: 8) {
-                Image(systemName: "book.closed")
-                    .font(.system(size: 30))
-
-                Text(book.title)
-                    .font(.caption2)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 8)
-            }
-            .foregroundStyle(.secondary)
-        }
-    }
 
     private var readingBadge: some View {
         Image(systemName: "bookmark.fill")

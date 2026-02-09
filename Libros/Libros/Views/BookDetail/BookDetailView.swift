@@ -87,10 +87,7 @@ struct BookDetailView: View {
     private var headerSection: some View {
         HStack(alignment: .top, spacing: 16) {
             // Cover
-            coverImage
-                .frame(width: 120, height: 180)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .shadow(radius: 4)
+            BookCoverView(book: book, size: .medium)
 
             // Basic info
             VStack(alignment: .leading, spacing: 8) {
@@ -124,45 +121,6 @@ struct BookDetailView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private var coverImage: some View {
-        Group {
-            if let coverData = book.coverData,
-               let uiImage = UIImage(data: coverData) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } else if let coverURL = book.coverURL ?? book.openLibraryCoverURL {
-                AsyncImage(url: coverURL) { phase in
-                    switch phase {
-                    case .empty:
-                        ProgressView()
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    case .failure:
-                        placeholderCover
-                    @unknown default:
-                        placeholderCover
-                    }
-                }
-            } else {
-                placeholderCover
-            }
-        }
-    }
-
-    private var placeholderCover: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.secondary.opacity(0.2))
-
-            Image(systemName: "book.closed")
-                .font(.largeTitle)
-                .foregroundStyle(.secondary)
-        }
     }
 
     private var statusSection: some View {

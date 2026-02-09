@@ -11,7 +11,9 @@ struct QuickPhotoView: View {
     var onComplete: (() -> Void)? = nil
 
     @State private var coverImage: UIImage?
+    @State private var rawCoverImage: UIImage?
     @State private var showingImagePicker = false
+    @State private var isProcessingCover = false
     @State private var title: String = ""
     @State private var authorNames: String = ""
 
@@ -19,7 +21,14 @@ struct QuickPhotoView: View {
         Form {
             // Cover photo section
             Section {
-                if let coverImage {
+                if isProcessingCover {
+                    HStack {
+                        Spacer()
+                        ProgressView("Processing cover...")
+                        Spacer()
+                    }
+                    .frame(height: 200)
+                } else if let coverImage {
                     HStack {
                         Spacer()
                         Image(uiImage: coverImage)
@@ -71,7 +80,18 @@ struct QuickPhotoView: View {
         .navigationTitle("Quick Photo")
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(isPresented: $showingImagePicker) {
-            ImagePicker(image: $coverImage)
+            ImagePicker(image: $rawCoverImage)
+        }
+        .onChange(of: rawCoverImage) { _, newImage in
+            guard let newImage else { return }
+            isProcessingCover = true
+            Task {
+                let processed = await CoverImageProcessor.process(newImage)
+                await MainActor.run {
+                    coverImage = processed
+                    isProcessingCover = false
+                }
+            }
         }
         .onAppear {
             showingImagePicker = true

@@ -41,7 +41,9 @@ struct GuidedOCRView: View {
 
     @State private var currentStep: Step = .coverPhoto
     @State private var coverImage: UIImage?
+    @State private var rawCoverImage: UIImage?
     @State private var showingImagePicker = false
+    @State private var isProcessingCover = false
 
     // OCR state
     @State private var capturedOCRText: String = ""
@@ -88,7 +90,18 @@ struct GuidedOCRView: View {
         .navigationTitle(currentStep.title)
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(isPresented: $showingImagePicker) {
-            ImagePicker(image: $coverImage)
+            ImagePicker(image: $rawCoverImage)
+        }
+        .onChange(of: rawCoverImage) { _, newImage in
+            guard let newImage else { return }
+            isProcessingCover = true
+            Task {
+                let processed = await CoverImageProcessor.process(newImage)
+                await MainActor.run {
+                    coverImage = processed
+                    isProcessingCover = false
+                }
+            }
         }
         .onAppear {
             showingImagePicker = true
@@ -121,7 +134,10 @@ struct GuidedOCRView: View {
         VStack(spacing: 24) {
             Spacer()
 
-            if let coverImage {
+            if isProcessingCover {
+                ProgressView("Processing cover...")
+                    .frame(maxHeight: 300)
+            } else if let coverImage {
                 Image(uiImage: coverImage)
                     .resizable()
                     .aspectRatio(contentMode: .fit)

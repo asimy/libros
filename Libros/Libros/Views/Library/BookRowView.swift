@@ -8,7 +8,7 @@ struct BookRowView: View {
     var body: some View {
         HStack(spacing: 12) {
             // Cover image
-            coverImage
+            BookCoverView(book: book, size: .small)
 
             // Book info
             VStack(alignment: .leading, spacing: 4) {
@@ -45,47 +45,6 @@ struct BookRowView: View {
     }
 
     // MARK: - Subviews
-
-    private var coverImage: some View {
-        Group {
-            if let coverData = book.coverData,
-               let uiImage = UIImage(data: coverData) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-            } else if let coverURL = book.coverURL ?? book.openLibraryCoverURL {
-                AsyncImage(url: coverURL) { phase in
-                    switch phase {
-                    case .empty:
-                        ProgressView()
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                    case .failure:
-                        placeholderCover
-                    @unknown default:
-                        placeholderCover
-                    }
-                }
-            } else {
-                placeholderCover
-            }
-        }
-        .frame(width: 50, height: 75)
-        .clipShape(RoundedRectangle(cornerRadius: 4))
-        .shadow(radius: 2)
-    }
-
-    private var placeholderCover: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 4)
-                .fill(Color.secondary.opacity(0.2))
-
-            Image(systemName: "book.closed")
-                .foregroundStyle(.secondary)
-        }
-    }
 
     private var readStatusBadge: some View {
         HStack(spacing: 2) {

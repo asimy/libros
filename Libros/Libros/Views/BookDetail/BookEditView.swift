@@ -31,6 +31,9 @@ struct BookEditView: View {
     @State private var readStatus: ReadStatus = .unread
     @State private var rating: Int?
     @State private var coverURL: URL?
+    @State private var coverImageData: Data?
+    @State private var showingCoverCamera = false
+    @State private var isProcessingCover = false
 
     // MARK: - Relationship State
 
@@ -167,7 +170,38 @@ struct BookEditView: View {
 
             TextField("Subtitle", text: $subtitle)
 
-            if let url = coverURL {
+            // Cover image display and capture
+            coverImageRow
+        }
+    }
+
+    private var coverImageRow: some View {
+        Group {
+            if isProcessingCover {
+                HStack {
+                    Text("Cover")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    ProgressView("Processing...")
+                }
+            } else if let data = coverImageData, let uiImage = UIImage(data: data) {
+                HStack {
+                    Text("Cover")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 50, height: 75)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                }
+
+                Button {
+                    showingCoverCamera = true
+                } label: {
+                    Label("Replace Cover Photo", systemImage: "camera")
+                }
+            } else if let url = coverURL {
                 HStack {
                     Text("Cover")
                         .foregroundStyle(.secondary)
@@ -182,7 +216,22 @@ struct BookEditView: View {
                     .frame(width: 50, height: 75)
                     .clipShape(RoundedRectangle(cornerRadius: 4))
                 }
+
+                Button {
+                    showingCoverCamera = true
+                } label: {
+                    Label("Replace Cover Photo", systemImage: "camera")
+                }
+            } else {
+                Button {
+                    showingCoverCamera = true
+                } label: {
+                    Label("Take Cover Photo", systemImage: "camera")
+                }
             }
+        }
+        .fullScreenCover(isPresented: $showingCoverCamera) {
+            CoverCameraPicker(onImageCaptured: processCoverImage)
         }
     }
 
@@ -372,6 +421,20 @@ struct BookEditView: View {
         }
     }
 
+    // MARK: - Cover Processing
+
+    private func processCoverImage(_ image: UIImage) {
+        isProcessingCover = true
+        Task {
+            let processed = await CoverImageProcessor.process(image)
+            let data = processed.jpegData(compressionQuality: 0.8)
+            await MainActor.run {
+                coverImageData = data
+                isProcessingCover = false
+            }
+        }
+    }
+
     // MARK: - Data Methods
 
     private func loadBookData() {
@@ -389,6 +452,7 @@ struct BookEditView: View {
             readStatus = book.readStatus
             rating = book.rating
             coverURL = book.coverURL
+            coverImageData = book.coverData
 
             // Relationships
             selectedGenreIDs = Set(book.genres.map(\.id))
@@ -433,6 +497,9 @@ struct BookEditView: View {
         targetBook.readStatus = readStatus
         targetBook.rating = rating
         targetBook.coverURL = coverURL
+        if let coverImageData {
+            targetBook.coverData = coverImageData
+        }
         targetBook.dateModified = Date()
 
         // Parse publish year to date
@@ -613,6 +680,25 @@ struct BookEditView: View {
             return String(dateString[range])
         }
         return ""
+    }
+}
+
+// MARK: - Cover Camera Picker
+
+/// Wraps ImagePicker and delivers the captured UIImage via a callback
+private struct CoverCameraPicker: View {
+    var onImageCaptured: (UIImage) -> Void
+    @State private var capturedImage: UIImage?
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        ImagePicker(image: $capturedImage)
+            .onChange(of: capturedImage) { _, newImage in
+                if let newImage {
+                    onImageCaptured(newImage)
+                    dismiss()
+                }
+            }
     }
 }
 
