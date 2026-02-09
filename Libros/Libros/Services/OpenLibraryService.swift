@@ -24,6 +24,10 @@ actor OpenLibraryService {
         struct AuthorInfo: Sendable {
             let name: String
             let openLibraryId: String?
+            let biography: String?
+            let birthDate: String?
+            let deathDate: String?
+            let photoURL: URL?
         }
     }
 
@@ -295,7 +299,29 @@ actor OpenLibraryService {
 
         let authorId = key.replacingOccurrences(of: "/authors/", with: "")
 
-        return BookMetadata.AuthorInfo(name: name, openLibraryId: authorId)
+        // Biography can be a string or an object with "value" key
+        var biography: String?
+        if let bio = json["bio"] as? String {
+            biography = bio
+        } else if let bioObj = json["bio"] as? [String: Any],
+                  let value = bioObj["value"] as? String {
+            biography = value
+        }
+
+        let birthDate = json["birth_date"] as? String
+        let deathDate = json["death_date"] as? String
+
+        // Author photo URL from Open Library covers
+        let photoURL = URL(string: "\(coversURL)/a/olid/\(authorId)-M.jpg")
+
+        return BookMetadata.AuthorInfo(
+            name: name,
+            openLibraryId: authorId,
+            biography: biography,
+            birthDate: birthDate,
+            deathDate: deathDate,
+            photoURL: photoURL
+        )
     }
 
     private func parseSearchResponse(_ json: [String: Any]) throws -> [SearchResult] {

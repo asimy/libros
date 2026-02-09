@@ -100,9 +100,16 @@ struct GuidedOCRView: View {
     private var progressBar: some View {
         HStack(spacing: 8) {
             ForEach(Step.allCases, id: \.rawValue) { step in
-                Circle()
-                    .fill(step.rawValue <= currentStep.rawValue ? Color.accentColor : Color.secondary.opacity(0.3))
-                    .frame(width: 10, height: 10)
+                Button {
+                    if step.rawValue < currentStep.rawValue {
+                        goToStep(step)
+                    }
+                } label: {
+                    Circle()
+                        .fill(step.rawValue <= currentStep.rawValue ? Color.accentColor : Color.secondary.opacity(0.3))
+                        .frame(width: 10, height: 10)
+                }
+                .disabled(step.rawValue >= currentStep.rawValue)
             }
         }
         .padding(.vertical, 8)
@@ -203,6 +210,13 @@ struct GuidedOCRView: View {
 
                 HStack(spacing: 12) {
                     Button {
+                        goBack()
+                    } label: {
+                        Label("Back", systemImage: "arrow.left")
+                    }
+                    .buttonStyle(.bordered)
+
+                    Button {
                         advanceStep()
                     } label: {
                         Text(currentStep == .backCover ? "Skip (Optional)" : "Skip")
@@ -270,6 +284,14 @@ struct GuidedOCRView: View {
 
             Section {
                 Button {
+                    goBack()
+                } label: {
+                    Label("Back to Scanning", systemImage: "arrow.left")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+
+                Button {
                     saveBook()
                 } label: {
                     Label("Save to Library", systemImage: "plus.circle.fill")
@@ -297,6 +319,38 @@ struct GuidedOCRView: View {
         }
 
         currentStep = Step.allCases[nextIndex]
+    }
+
+    private func goBack() {
+        guard let prevIndex = Step.allCases.firstIndex(of: currentStep)?.advanced(by: -1),
+              prevIndex >= 0 else { return }
+
+        if currentStep.isOCRStep {
+            isSessionRunning = false
+        }
+
+        let target = Step.allCases[prevIndex]
+        goToStep(target)
+    }
+
+    private func goToStep(_ step: Step) {
+        if currentStep.isOCRStep {
+            isSessionRunning = false
+        }
+
+        currentStep = step
+
+        // Restore previously captured text for OCR steps
+        switch step {
+        case .titlePage:
+            capturedOCRText = titlePageText
+        case .copyrightPage:
+            capturedOCRText = copyrightPageText
+        case .backCover:
+            capturedOCRText = backCoverText
+        default:
+            capturedOCRText = ""
+        }
     }
 
     private func captureCurrentText() {

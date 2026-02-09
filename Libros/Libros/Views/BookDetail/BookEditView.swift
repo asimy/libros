@@ -500,6 +500,10 @@ struct BookEditView: View {
 
             // Look for existing author with same name
             if let existing = existingAuthors.first(where: { $0.name == name }) {
+                // Update biography if we have new data and existing has none
+                if existing.biography == nil, let bio = apiAuthor?.biography {
+                    existing.biography = bio
+                }
                 authors.append(existing)
             } else {
                 // Create new author
@@ -507,6 +511,7 @@ struct BookEditView: View {
                     name: name,
                     openLibraryId: apiAuthor?.openLibraryId
                 )
+                newAuthor.biography = apiAuthor?.biography
                 modelContext.insert(newAuthor)
                 authors.append(newAuthor)
             }

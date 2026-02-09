@@ -82,7 +82,7 @@ struct BarcodeScannerView: View {
                 permissionDeniedView
             }
         }
-        .navigationTitle("ISBN Lookup")
+        .navigationTitle("Scan Barcode/ISBN")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             checkCameraPermission()

@@ -52,7 +52,7 @@ struct AddBookView: View {
                 NavigationLink(value: Destination.isbnLookup) {
                     Label {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("ISBN Lookup")
+                            Text("Scan Barcode/ISBN")
                                 .font(.headline)
                             Text("Scan barcode or ISBN text")
                                 .font(.caption)
@@ -103,9 +103,9 @@ struct AddBookView: View {
                 NavigationLink(value: Destination.manualEntry) {
                     Label {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Manual Entry")
+                            Text("Manual Entry with ISBN Lookup")
                                 .font(.headline)
-                            Text("Type all book details by hand")
+                            Text("Type details by hand or look up by ISBN")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
