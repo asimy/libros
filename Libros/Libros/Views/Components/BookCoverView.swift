@@ -110,6 +110,7 @@ struct BookCoverView: View {
                     .padding(.horizontal, size == .small ? 4 : 10)
             }
         }
+        .aspectRatio(6.0 / 9.0, contentMode: .fit)
         .overlay {
             RoundedRectangle(cornerRadius: size.cornerRadius)
                 .fill(
